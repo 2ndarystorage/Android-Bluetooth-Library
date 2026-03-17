@@ -52,7 +52,7 @@ public class BluetoothManager extends BroadcastReceiver {
     public BluetoothManager(Activity activity) {
         mActivity = activity;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        mBluetoothIsEnableOnStart = mBluetoothAdapter.isEnabled();
+        mBluetoothIsEnableOnStart = mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
         isConnected = false;
         setTimeDiscoverable(BLUETOOTH_TIME_DICOVERY_300_SEC);
     }
@@ -107,12 +107,21 @@ public class BluetoothManager extends BroadcastReceiver {
     }
 
     public void scanAllBluetoothDevice() {
+        if (mBluetoothAdapter == null) {
+            return;
+        }
         IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         mActivity.registerReceiver(this, intentFilter);
-        mBluetoothAdapter.startDiscovery();
+        try {
+            mBluetoothAdapter.startDiscovery();
+        } catch (SecurityException ignored) {
+        }
     }
 
     public void createClient(String addressMac) {
+        if (mBluetoothAdapter == null) {
+            return;
+        }
         mType = TypeBluetooth.Client;
         IntentFilter bondStateIntent = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         mActivity.registerReceiver(this, bondStateIntent);
@@ -121,6 +130,9 @@ public class BluetoothManager extends BroadcastReceiver {
     }
 
     public void createServeur(){
+        if (mBluetoothAdapter == null) {
+            return;
+        }
         mType = TypeBluetooth.Server;
         mBluetoothServer = new BluetoothServer(mBluetoothAdapter, mUUID);
         new Thread(mBluetoothServer).start();
@@ -182,10 +194,17 @@ public class BluetoothManager extends BroadcastReceiver {
             mActivity.unregisterReceiver(this);
         }catch(Exception e){}
 
+        if (mBluetoothAdapter == null) {
+            return;
+        }
+
         cancelDiscovery();
 
         if(!mBluetoothIsEnableOnStart){
-            mBluetoothAdapter.disable();
+            try {
+                mBluetoothAdapter.disable();
+            } catch (SecurityException ignored) {
+            }
         }
 
         mBluetoothAdapter = null;

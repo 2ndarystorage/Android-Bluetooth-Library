@@ -1,8 +1,10 @@
 package com.ramimartin.bluetooth.activity;
 
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.ramimartin.bluetooth.BluetoothManager;
@@ -22,6 +24,8 @@ import de.greenrobot.event.EventBus;
  */
 public abstract class BluetoothActivity extends Activity {
 
+    private static final int REQUEST_BLUETOOTH_PERMISSIONS = 2014;
+
     protected BluetoothManager mBluetoothManager;
 
     @Override
@@ -29,6 +33,7 @@ public abstract class BluetoothActivity extends Activity {
         super.onCreate(savedInstanceState);
         mBluetoothManager = new BluetoothManager(this);
         checkBluetoothAviability();
+        ensureBluetoothPermissions();
     }
 
     @Override
@@ -73,19 +78,61 @@ public abstract class BluetoothActivity extends Activity {
     }
 
     public void startDiscovery(){
-        mBluetoothManager.startDiscovery();
+        if (hasRequiredBluetoothPermissions()) {
+            mBluetoothManager.startDiscovery();
+        }
     }
 
     public void scanAllBluetoothDevice(){
-        mBluetoothManager.scanAllBluetoothDevice();
+        if (hasRequiredBluetoothPermissions()) {
+            mBluetoothManager.scanAllBluetoothDevice();
+        }
     }
 
     public void createServeur(){
-        mBluetoothManager.createServeur();
+        if (hasRequiredBluetoothPermissions()) {
+            mBluetoothManager.createServeur();
+        }
     }
 
     public void createClient(String addressMac){
-        mBluetoothManager.createClient(addressMac);
+        if (hasRequiredBluetoothPermissions()) {
+            mBluetoothManager.createClient(addressMac);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_BLUETOOTH_PERMISSIONS && !hasRequiredBluetoothPermissions()) {
+            onBluetoothNotAviable();
+        }
+    }
+
+    private void ensureBluetoothPermissions() {
+        if (!hasRequiredBluetoothPermissions()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                requestPermissions(new String[]{
+                        android.Manifest.permission.BLUETOOTH_SCAN,
+                        android.Manifest.permission.BLUETOOTH_CONNECT
+                }, REQUEST_BLUETOOTH_PERMISSIONS);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{
+                        android.Manifest.permission.ACCESS_FINE_LOCATION
+                }, REQUEST_BLUETOOTH_PERMISSIONS);
+            }
+        }
+    }
+
+    private boolean hasRequiredBluetoothPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return checkSelfPermission(android.Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
     }
 
     public void sendMessage(String message){
