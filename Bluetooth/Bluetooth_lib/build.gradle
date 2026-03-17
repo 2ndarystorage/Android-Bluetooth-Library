@@ -1,29 +1,34 @@
-apply plugin: 'android-library'
+plugins {
+    id 'com.android.library'
+}
 
 android {
-    compileSdkVersion 18
-    buildToolsVersion "19.0.3"
-
-    lintOptions {
-        abortOnError false
-    }
-
-    packagingOptions {
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/NOTICE'
-    }
+    namespace 'com.ramimartin.bluetooth'
+    compileSdk 34
 
     defaultConfig {
-        minSdkVersion 8
-        targetSdkVersion 16
-        versionCode 1
-        versionName "1.0"
+        minSdk 21
+        targetSdk 34
+        consumerProguardFiles 'proguard-rules.txt'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    packaging {
+        resources {
+            excludes += [
+                    'META-INF/services/javax.annotation.processing.Processor',
+                    'META-INF/LICENSE.txt',
+                    'META-INF/LICENSE',
+                    'META-INF/NOTICE'
+            ]
+        }
     }
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:19.+'
-    compile 'de.greenrobot:eventbus:2.2.0'
+    implementation 'de.greenrobot:eventbus:2.4.0'
 }

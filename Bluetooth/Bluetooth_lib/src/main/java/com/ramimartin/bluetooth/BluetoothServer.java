@@ -54,7 +54,7 @@ public class BluetoothServer implements Runnable {
                 bytesRead = mInputStream.read(buffer);
                 if (bytesRead != -1) {
                     String result = "";
-                    while ((bytesRead == bufferSize) && (buffer[bufferSize] != 0)) {
+                    while ((bytesRead == bufferSize) && (buffer[bufferSize - 1] != 0)) {
                         result = result + new String(buffer, 0, bytesRead);
                         bytesRead = mInputStream.read(buffer);
                     }
